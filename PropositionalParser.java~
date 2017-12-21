@@ -1,6 +1,8 @@
 import java.io.*;
 import java.util.*;
 
+//package TheoremProver.COMP-202-Theorem-Prover;
+
 public class PropositionalParser{
   
   //helper function to determine if a character is an operator
