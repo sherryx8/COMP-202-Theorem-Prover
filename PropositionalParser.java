@@ -124,21 +124,21 @@ public class PropositionalParser{
   //given formula, use parse to determine string result 
   public String getresult(String s){
     int x = parse(s);
-    String res = " is not a formula";
+    String res = " is not a formula. ";
     switch(x)
     {
-      case(0): res = s + " is not a formula"; break;
-      case(1): res = s + " is a proposition"; break;
-      case(2): res = s + " is a negation"; break;
-      case(3): res = s + " is a binary formula"; break;
-      default: res = s + " is not a formula"; break;
+      case(0): res = s + " is not a formula. "; break;
+      case(1): res = s + " is a proposition. "; break;
+      case(2): res = s + " is a negation. "; break;
+      case(3): res = s + " is a binary formula. "; break;
+      default: res = s + " is not a formula. "; break;
     }
     //if it is a binary formula, find the two parts as well
-    if (x == 3){
-      String a = splitBinaryFormulaA(s);
-      String b = splitBinaryFormulaB(s);
-      res += " (First half is: " + a + " Second half is: " + b + ")";
-    }
+//    if (x == 3){
+//      String a = splitBinaryFormulaA(s);
+//      String b = splitBinaryFormulaB(s);
+//      res += " (First half is: " + a + " Second half is: " + b + ")";
+//    }
     return res;
   }
   

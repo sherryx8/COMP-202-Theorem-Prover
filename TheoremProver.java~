@@ -113,13 +113,13 @@ public class TheoremProver{
             return false;
           }
         }
-        if (p.isProposition(phrase)){ //add to the list if new prop found
+        
+        if (p.isProposition(phrase) || p.isProposition(negate(phrase))){ //add to the list if new prop found
+          System.out.println("adding -" + phrase + " to list");
           props.add(findNegation(phrase));
         }
         
-        
         curr = curr.parent;
-        
       }
       
       //if no contraditions found

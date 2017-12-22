@@ -52,18 +52,18 @@ public class PropositionalParser{
   }
   
   //helper function to find middle operator location
-  public int findOperator(String g){
+   public int findOperator(String g){
     //find operator, operator must be at correct parans depth
     int operator = -1;
     int depth = 0;
-    for(int i = 1; i < g.length(); i++){
+    for(int i = 0; i < g.length(); i++){
       if(g.charAt(i) == '('){
         depth++;
       }
       if(g.charAt(i) == ')'){
         depth--;
       }
-      if((isOperator(g.charAt(i))) && (depth == 0)){
+      if((isOperator(g.charAt(i))) && (depth == 1)){
         operator = i;
         break;
       }
