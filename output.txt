@@ -3,8 +3,8 @@
 ((p^q)-(qvp)) is not a formula. I told you, ((p^q)-(qvp)) is not a formula
 ((--p>q)v(q>-p)) is a binary formula. ((--p>q)v(q>-p)) is satisifiable.
 ---(p^-p) is a negation. ---(p^-p) is satisifiable.
-(p^((q>-p)^(-q>-p))) is a binary formula. (p^((q>-p)^(-q>-p))) is not satisfiable.
+(p^((q>-p)^(-q>-p))) is a binary formula. (p^((q>-p)^(-q>-p))) is satisifiable.
 -((-qv-p)>(-q^-p)) is a negation. -((-qv-p)>(-q^-p)) is satisifiable.
 ((qvp)>(q^p)) is a binary formula. ((qvp)>(q^p)) is satisifiable.
--((p>(q^r))>((p>q)^(p>r))) is a negation. -((p>(q^r))>((p>q)^(p>r))) is not satisfiable.
+-((p>(q^r))>((p>q)^(p>r))) is a negation. -((p>(q^r))>((p>q)^(p>r))) is satisifiable.
 -((p>(qv))>((p>q)v(p>r))) is not a formula. I told you, -((p>(qv))>((p>q)v(p>r))) is not a formula

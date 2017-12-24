@@ -3,25 +3,32 @@ import java.util.*;
 //import PropositionalParser.*;
 //import COMP-202-Theorem-Prover.*;
 
-//alpha 
-//p^q
-//--p
-//-(pvq)
-//-(p>q)
-
-//beta
-//(pvq)
-//-(p^q)
-//(p>q)
-
 
 public class TheoremProver{
   
   PropositionalParser p = new PropositionalParser();
   
+  public String getResult(String s){
+    
+    String x = p.getresult(s);
+    if(p.parse(s) == 0){
+      x += "I told you, " + s + " is not a formula";
+    }else{
+      x += s + " is ";
+      if(prove(s)){
+        x += "satisifiable.";
+      }else{
+        x += "not satisfiable.";
+        
+      }  
+    }
+    return x;
+    
+  }
+  
   public boolean prove(String s){
     if (p.parse(s) == 0){
-      System.out.println("is not a formula");
+      //System.out.println("is not a formula");
       return false;
     }
     Queue<TPnode> queue = new LinkedList<TPnode>();
@@ -35,7 +42,7 @@ public class TheoremProver{
       //determine if alpha or beta formula
       TPnode next = queue.remove();
       
-      System.out.println("expanded " + next.phrase);
+      // System.out.println("expanded " + next.phrase);
       expand(next, queue);
 //      if (expand(next, queue)){
 //        System.out.println(next.phrase + " is open");
@@ -53,7 +60,7 @@ public class TheoremProver{
   //ab = if alpha or beta
   public boolean expand(TPnode n, Queue<TPnode> q){
     int k = findFormulaType(n.phrase);
-    System.out.println("formula type for " + n.phrase + " is " + k);
+    // System.out.println("formula type for " + n.phrase + " is " + k);
     int o = p.findOperator(n.phrase);
     //split after removing any negations
     
@@ -68,6 +75,7 @@ public class TheoremProver{
     if(o > 0){
       a = p.splitBinaryFormulaA(x);
       b = p.splitBinaryFormulaB(x);
+      
     }
     switch(k){
       case (0): break; 
@@ -86,8 +94,8 @@ public class TheoremProver{
   }
   
   public String negate(String s){
-   String ss = "-" + s;
-   return simplifyNegation(ss);
+    String ss = "-" + s;
+    return simplifyNegation(ss);
   }
   //given node check if there are any open branches
   public boolean checkOpen(TPnode node){
@@ -99,7 +107,7 @@ public class TheoremProver{
       ArrayList<String> props = new ArrayList<String>();
       
       String x = findNegation(node.phrase);
-      System.out.println("checking for " + x);
+      // System.out.println("checking for " + x);
       props.add(x);
       
       TPnode curr = node;
@@ -109,13 +117,13 @@ public class TheoremProver{
         
         for(int i = 0; i < props.size(); i++){
           if(phrase.equals(props.get(i))){ //if negation found
-            System.out.println("found " + x + ", branch is closed");
+            // System.out.println("found " + x + ", branch is closed");
             return false;
           }
         }
         
         if (p.isProposition(phrase) || p.isProposition(negate(phrase))){ //add to the list if new prop found
-          System.out.println("adding -" + phrase + " to list");
+          // System.out.println("adding -" + phrase + " to list");
           props.add(findNegation(phrase));
         }
         
@@ -153,8 +161,8 @@ public class TheoremProver{
   public void addAlpha(TPnode n, String a, String b, Queue<TPnode> q){
     TPnode aNode = new TPnode(a);
     TPnode bNode = new TPnode(b);
-     q.add(aNode);
-      q.add(bNode);
+    q.add(aNode);
+    q.add(bNode);
     TPnode curr = n;
     if (n == null){
       return;
@@ -164,12 +172,12 @@ public class TheoremProver{
       curr.left = aNode;
       bNode.parent = aNode;
       aNode.left = bNode;
-      System.out.println("addalpha to " + curr.phrase + " with " + a + " and " + b);
+     // System.out.println("addalpha to " + curr.phrase + " with " + a + " and " + b);
       //return;
     }else{
       addAlpha(curr.left, a, b, q);
       addAlpha(curr.right, a, b, q);
-     
+      
     }
     
     return;
@@ -179,7 +187,7 @@ public class TheoremProver{
   public void addBeta(TPnode n, String a, String b, Queue<TPnode> q){
     TPnode aNode = new TPnode(a);
     TPnode bNode = new TPnode(b);
-     q.add(aNode);
+    q.add(aNode);
     q.add(bNode);
     
     TPnode curr = n;
@@ -192,14 +200,14 @@ public class TheoremProver{
       curr.left = aNode;
       bNode.parent = curr;
       curr.right = bNode;
-      System.out.println("addbeta to " + curr.phrase + " with " + a + " and " + b);
+      // System.out.println("addbeta to " + curr.phrase + " with " + a + " and " + b);
       //return;
     }else{
       addBeta(curr.left, a, b, q);
       addBeta(curr.right, a, b, q);
       
     }
-   
+    
   }
   
   
@@ -250,8 +258,29 @@ public class TheoremProver{
         System.out.println(tp.prove(s));
       }
     }else{
-      try{}
-      catch(Exception e){}
+      try{ //else use input.txt file
+        File input = new File("input.txt");
+        //File output = new File("output.txt");
+        Scanner inputScanner = new Scanner(input);
+        PrintWriter printWriter = new PrintWriter(new FileWriter("output.txt"));
+        
+        while(inputScanner.hasNext()){
+          String g = inputScanner.nextLine();
+          String result = tp.getResult(g);
+          printWriter.println(result);
+          System.out.println(result);
+        }
+        printWriter.close();
+        inputScanner.close();
+      }
+      catch(Exception e){ //use defaults if input file cannot be found
+        System.out.println(e);
+        System.out.println(" input file not found, using defaults:");
+        String[] defaults = {"(pvq)", "((p>q)v-p)", "-(p^q)v-(p>q)", "((p^--q)>(-qv-p))", "---p", "((pvq)>(-p>--q))", "-(p>(q>p))", "(pv-q)", "-(pv-p)", "((p^--q)>(-qv-p))", "-pvq"};
+        for (int j = 0; j < defaults.length; j++){
+          System.out.println(tp.getResult(defaults[j]));
+        }
+      }
     }
   }
   
