@@ -1,7 +1,5 @@
 import java.io.*;
 import java.util.*;
-//import PropositionalParser.*;
-//import COMP-202-Theorem-Prover.*;
 
 
 public class TheoremProver{
@@ -42,7 +40,7 @@ public class TheoremProver{
       //determine if alpha or beta formula
       TPnode next = queue.remove();
       
-      // System.out.println("expanded " + next.phrase);
+       //System.out.println("expanded " + next.phrase);
       expand(next, queue);
 //      if (expand(next, queue)){
 //        System.out.println(next.phrase + " is open");
@@ -75,28 +73,30 @@ public class TheoremProver{
     if(o > 0){
       a = p.splitBinaryFormulaA(x);
       b = p.splitBinaryFormulaB(x);
-      
-    }
+      TPnode aNode = new TPnode(a);
+      TPnode bNode = new TPnode(b);
+      q.add(aNode);
+      q.add(bNode);
+    
     switch(k){
       case (0): break; 
-      case (1): addAlpha(n, a, b, q); break;
-      case (2): addAlpha(n, negate(a), negate(b), q); break;
-      case (3): addAlpha(n, a, negate(b), q); break;
-      case (4): addBeta(n, a, b, q); break;
-      case (5): addBeta(n, negate(a), negate(b), q); break;
-      case (6): addBeta(n, negate(a), b, q); break;
+      case (1): addAlpha(n, aNode, bNode); break;
+      case (2): addAlpha(n, negate(aNode), negate(bNode)); break;
+      case (3): addAlpha(n, aNode, negate(bNode)); break;
+      case (4): addBeta(n, aNode, bNode); break;
+      case (5): addBeta(n, negate(aNode), negate(bNode)); break;
+      case (6): addBeta(n, negate(aNode), bNode); break;
+    }
     }
     return false;
-    
-    //if negation, then simplify
-    //if proposition, then finish
-    //if binary formula, do beta or alpha split
   }
   
-  public String negate(String s){
-    String ss = "-" + s;
-    return simplifyNegation(ss);
+  public TPnode negate(TPnode tp){
+    String s = tp.phrase;
+    tp.phrase = simplifyNegation("-" + s);
+    return tp;
   }
+  
   //given node check if there are any open branches
   public boolean checkOpen(TPnode node){
     if (node == null){
@@ -121,19 +121,16 @@ public class TheoremProver{
             return false;
           }
         }
-        
-        if (p.isProposition(phrase) || p.isProposition(negate(phrase))){ //add to the list if new prop found
+        // if p or the negation of p is a proposition
+        if (p.isProposition(phrase) || p.isProposition(negate(curr).phrase)){ //add to the list if new prop found
           // System.out.println("adding -" + phrase + " to list");
           props.add(findNegation(phrase));
         }
-        
         curr = curr.parent;
       }
-      
       //if no contraditions found
       return true;
-    }else{
-      
+    }else{  
       return checkOpen(node.left) || checkOpen(node.right);
     }
   }
@@ -150,19 +147,17 @@ public class TheoremProver{
   }
   
   public String findNegation(String s){
-    
     String ss = "-" + s;
-    
     return simplifyNegation(ss);
   }
   
   //expands an alpha formula
   //WRONG -> NEEDS TO ADD TO ALL LEAVES
-  public void addAlpha(TPnode n, String a, String b, Queue<TPnode> q){
-    TPnode aNode = new TPnode(a);
-    TPnode bNode = new TPnode(b);
-    q.add(aNode);
-    q.add(bNode);
+  public void addAlpha(TPnode n, TPnode aNode, TPnode bNode){
+//    TPnode aNode = new TPnode(a);
+//    TPnode bNode = new TPnode(b);
+//    q.add(aNode);
+//    q.add(bNode);
     TPnode curr = n;
     if (n == null){
       return;
@@ -172,11 +167,11 @@ public class TheoremProver{
       curr.left = aNode;
       bNode.parent = aNode;
       aNode.left = bNode;
-     // System.out.println("addalpha to " + curr.phrase + " with " + a + " and " + b);
+      // System.out.println("addalpha to " + curr.phrase + " with " + a + " and " + b);
       //return;
     }else{
-      addAlpha(curr.left, a, b, q);
-      addAlpha(curr.right, a, b, q);
+      addAlpha(curr.left, aNode, bNode);
+      addAlpha(curr.right, aNode, bNode);
       
     }
     
@@ -184,11 +179,11 @@ public class TheoremProver{
   }
   
   //expands a beta formula
-  public void addBeta(TPnode n, String a, String b, Queue<TPnode> q){
-    TPnode aNode = new TPnode(a);
-    TPnode bNode = new TPnode(b);
-    q.add(aNode);
-    q.add(bNode);
+  public void addBeta(TPnode n, TPnode aNode, TPnode bNode){
+//    TPnode aNode = new TPnode(a);
+//    TPnode bNode = new TPnode(b);
+//    q.add(aNode);
+//    q.add(bNode);
     
     TPnode curr = n;
     
@@ -203,8 +198,8 @@ public class TheoremProver{
       // System.out.println("addbeta to " + curr.phrase + " with " + a + " and " + b);
       //return;
     }else{
-      addBeta(curr.left, a, b, q);
-      addBeta(curr.right, a, b, q);
+      addBeta(curr.left, aNode, bNode);
+      addBeta(curr.right, aNode, bNode);
       
     }
     
