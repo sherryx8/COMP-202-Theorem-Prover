@@ -10,6 +10,8 @@ public class TPnode{
     this.right = null;
     this.parent = null;
   }
+  
+  
 }
   
   

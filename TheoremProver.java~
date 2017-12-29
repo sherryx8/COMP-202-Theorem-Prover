@@ -6,70 +6,64 @@ public class TheoremProver{
   
   PropositionalParser p = new PropositionalParser();
   
+  
+  // This function uses the prove function to find the string result
   public String getResult(String s){
-    
     String x = p.getresult(s);
+    // if string is not a formula
     if(p.parse(s) == 0){
-      x += "I told you, " + s + " is not a formula";
-    }else{
+      x += "I told you, " + s + " is not a formula.";
+    }else{ // find if string is satisfiable or not
       x += s + " is ";
       if(prove(s)){
         x += "satisifiable.";
       }else{
         x += "not satisfiable.";
-        
       }  
     }
     return x;
-    
   }
   
+  
+  
+  // Given a formula, determines if the formula satisfiable or not
   public boolean prove(String s){
+    
     if (p.parse(s) == 0){
-      //System.out.println("is not a formula");
+      // System.out.println("is not a formula");
       return false;
     }
+    
     Queue<TPnode> queue = new LinkedList<TPnode>();
     TPnode head = new TPnode(s);
     queue.add(head);
     boolean satisfiable = false;
     
-    //while there are still nodes to be expanded
+    // while there are still nodes to be expanded
     while (!queue.isEmpty()){
-      //expand 
-      //determine if alpha or beta formula
       TPnode next = queue.remove();
-      
-       //System.out.println("expanded " + next.phrase);
-      expand(next, queue);
-//      if (expand(next, queue)){
-//        System.out.println(next.phrase + " is open");
-//        
-//        satisfiable = true; 
-//      }
-      next.expanded = true;
-      //int ab = isAlphaOrBeta(next.phrase);
-      
+      // System.out.println("expanded " + next.phrase);
+      expand(next, queue); 
     }
-    //check all branches for an open branch
+    
+    // check all branches for an open branch
     return checkOpen(head);
   }
   
-  //ab = if alpha or beta
+  
+  
+  // Expands a node, adding children to tree and queue
   public boolean expand(TPnode n, Queue<TPnode> q){
     int k = findFormulaType(n.phrase);
     // System.out.println("formula type for " + n.phrase + " is " + k);
     int o = p.findOperator(n.phrase);
-    //split after removing any negations
-    
     String x = simplifyNegation(n.phrase);
     if(p.isNegation(x)){
       x = x.substring(1);
     }
-    
-    //System.out.println("operator at " + o);
     String a = "";
     String b = "";
+    // if not a proposition, split and add children to tree
     if(o > 0){
       a = p.splitBinaryFormulaA(x);
       b = p.splitBinaryFormulaB(x);
@@ -77,149 +71,70 @@ public class TheoremProver{
       TPnode bNode = new TPnode(b);
       q.add(aNode);
       q.add(bNode);
-    
-    switch(k){
-      case (0): break; 
-      case (1): addAlpha(n, aNode, bNode); break;
-      case (2): addAlpha(n, negate(aNode), negate(bNode)); break;
-      case (3): addAlpha(n, aNode, negate(bNode)); break;
-      case (4): addBeta(n, aNode, bNode); break;
-      case (5): addBeta(n, negate(aNode), negate(bNode)); break;
-      case (6): addBeta(n, negate(aNode), bNode); break;
-    }
+      // add expanded children to correct locations of tree
+      switch(k){
+        case (0): break; 
+        case (1): addAlpha(n, aNode, bNode); break;
+        case (2): addAlpha(n, negate(aNode), negate(bNode)); break;
+        case (3): addAlpha(n, aNode, negate(bNode)); break;
+        case (4): addBeta(n, aNode, bNode); break;
+        case (5): addBeta(n, negate(aNode), negate(bNode)); break;
+        case (6): addBeta(n, negate(aNode), bNode); break;
+      }
     }
     return false;
   }
   
-  public TPnode negate(TPnode tp){
-    String s = tp.phrase;
-    tp.phrase = simplifyNegation("-" + s);
-    return tp;
-  }
   
-  //given node check if there are any open branches
+  
+  
+  // Given node check if there are any open branches
   public boolean checkOpen(TPnode node){
     if (node == null){
       return false;
     }
-    //if leaf node, go up tree
+    // if leaf node, go up tree
     if(node.left == null && node.right == null){
-      ArrayList<String> props = new ArrayList<String>();
-      
+      // list of the propositions need to check for
+      ArrayList<String> props = new ArrayList<String>();    
       String x = findNegation(node.phrase);
-      // System.out.println("checking for " + x);
       props.add(x);
-      
+      // System.out.println("checking for " + x);
       TPnode curr = node;
-      while(curr.parent != null){
-        
+      
+      while(curr.parent != null){      
         String phrase = curr.phrase;
-        
+        // check for contradictions in branch
         for(int i = 0; i < props.size(); i++){
           if(phrase.equals(props.get(i))){ //if negation found
             // System.out.println("found " + x + ", branch is closed");
             return false;
           }
-        }
-        // if p or the negation of p is a proposition
-        if (p.isProposition(phrase) || p.isProposition(negate(curr).phrase)){ //add to the list if new prop found
-          // System.out.println("adding -" + phrase + " to list");
+        }       
+        // if p or the negation of p is a proposition, make sure to check for it too by adding it to list
+        if (p.isProposition(phrase) || p.isProposition(findNegation(phrase))){
+          // System.out.println("adding " + findNegation(phrase) + " to list");
           props.add(findNegation(phrase));
-        }
+        }      
         curr = curr.parent;
       }
-      //if no contraditions found
+      // if no contraditions found, the branch is open
       return true;
     }else{  
       return checkOpen(node.left) || checkOpen(node.right);
     }
   }
   
-  public String simplifyNegation(String s){
-    while(s.length() > 2){
-      if(s.charAt(0) == '-' && s.charAt(1) == '-'){
-        s = s.substring(2);
-      }else{ //if doesn't start with "--"
-        break;
-      }
-    }
-    return s;
-  }
   
-  public String findNegation(String s){
-    String ss = "-" + s;
-    return simplifyNegation(ss);
-  }
-  
-  //expands an alpha formula
-  //WRONG -> NEEDS TO ADD TO ALL LEAVES
-  public void addAlpha(TPnode n, TPnode aNode, TPnode bNode){
-//    TPnode aNode = new TPnode(a);
-//    TPnode bNode = new TPnode(b);
-//    q.add(aNode);
-//    q.add(bNode);
-    TPnode curr = n;
-    if (n == null){
-      return;
-    }
-    if(curr.left == null && curr.right == null){ //if leaf node
-      aNode.parent = curr;
-      curr.left = aNode;
-      bNode.parent = aNode;
-      aNode.left = bNode;
-      // System.out.println("addalpha to " + curr.phrase + " with " + a + " and " + b);
-      //return;
-    }else{
-      addAlpha(curr.left, aNode, bNode);
-      addAlpha(curr.right, aNode, bNode);
-      
-    }
-    
-    return;
-  }
-  
-  //expands a beta formula
-  public void addBeta(TPnode n, TPnode aNode, TPnode bNode){
-//    TPnode aNode = new TPnode(a);
-//    TPnode bNode = new TPnode(b);
-//    q.add(aNode);
-//    q.add(bNode);
-    
-    TPnode curr = n;
-    
-    if(n == null){
-      return;
-    }
-    if(curr.left == null && curr.right == null){ //if leaf node
-      aNode.parent = curr;
-      curr.left = aNode;
-      bNode.parent = curr;
-      curr.right = bNode;
-      // System.out.println("addbeta to " + curr.phrase + " with " + a + " and " + b);
-      //return;
-    }else{
-      addBeta(curr.left, aNode, bNode);
-      addBeta(curr.right, aNode, bNode);
-      
-    }
-    
-  }
-  
-  
-  
-  //0 = proposition 1 = AND 2 = -OR 3 = -IMP
-  //4 = OR 5 = -AND 6 = IMP
+  // 0 = proposition 1 = AND 2 = -OR 3 = -IMP
+  // 4 = OR 5 = -AND 6 = IMP
   public int findFormulaType(String s){
-    
+    // if there is no operator, then it is a proposition (or -prop)
     int operator = p.findOperator(s);
-    
-    //if there is no operator, then its some sort of proposition?
-    if(operator == -1){
-      return 0;
-    }
+    if(operator == -1){return 0;}
     char o = s.charAt(operator);
     s = simplifyNegation(s);
-    
+    // if there is an operator determine what kind
     if (p.isNegation(s)){
       if (o == 'v'){
         return 2;
@@ -240,25 +155,90 @@ public class TheoremProver{
       }
     }
     return 0;
-    
+  }
+  
+  
+  
+  // Expands an alpha formula by placing children in correct leaves
+  public void addAlpha(TPnode n, TPnode aNode, TPnode bNode){
+    TPnode curr = n;
+    if (n == null){
+      return;
+    }
+    if(curr.left == null && curr.right == null){ //if leaf node
+      aNode.parent = curr;
+      curr.left = aNode;
+      bNode.parent = aNode;
+      aNode.left = bNode;
+      // System.out.println("addalpha to " + curr.phrase + " with " + aNode.phrase + " and " + bNode.phrase);
+    }else{
+      addAlpha(curr.left, aNode, bNode);
+      addAlpha(curr.right, aNode, bNode); 
+    }
+    return;
+  }
+  
+  // Expands an beta formula by placing children in correct leaves
+  public void addBeta(TPnode n, TPnode aNode, TPnode bNode){
+    TPnode curr = n; 
+    if(n == null){
+      return;
+    }
+    if(curr.left == null && curr.right == null){ //if leaf node
+      aNode.parent = curr;
+      curr.left = aNode;
+      bNode.parent = curr;
+      curr.right = bNode;
+      // System.out.println("addbeta to " + curr.phrase + " with " + aNode.phrase + " and " + bNode.phrase);
+    }else{
+      addBeta(curr.left, aNode, bNode);
+      addBeta(curr.right, aNode, bNode);
+    }
+    return;
+  }
+  
+  
+  
+  // Given a string, simplify negation by removing extra '-'
+  public String simplifyNegation(String s){
+    while(s.length() >= 2){
+      if(s.charAt(0) == '-' && s.charAt(1) == '-'){
+        return s.substring(2);
+      }else{ // if doesn't start with "--"
+        break;
+      }
+    }
+    return s;
+  }
+  
+  // Given a node, negate the phrase inside
+  public TPnode negate(TPnode tp){
+    String s = tp.phrase;
+    tp.phrase = findNegation(s);
+    return tp;
+  }
+  
+  // Given a string, find negation of the string
+  public String findNegation(String s){
+    String ss = "-" + s;
+    return simplifyNegation(ss);
   }
   
   public static void main(String args[]){
     
     TheoremProver tp = new TheoremProver();
     
-    if(args.length > 0){
+    // if inputs given through args
+    if(args.length > 0){ 
       for(int i = 0; i < args.length; i++){
         String s = args[i];
         System.out.println(tp.prove(s));
       }
-    }else{
-      try{ //else use input.txt file
+    }else{ 
+      try{ // else try using input.txt file
         File input = new File("input.txt");
-        //File output = new File("output.txt");
         Scanner inputScanner = new Scanner(input);
-        PrintWriter printWriter = new PrintWriter(new FileWriter("output.txt"));
-        
+        PrintWriter printWriter = new PrintWriter(new FileWriter("output.txt"));  
         while(inputScanner.hasNext()){
           String g = inputScanner.nextLine();
           String result = tp.getResult(g);
@@ -268,9 +248,9 @@ public class TheoremProver{
         printWriter.close();
         inputScanner.close();
       }
-      catch(Exception e){ //use defaults if input file cannot be found
+      catch(Exception e){ // use defaults if input file cannot be found
         System.out.println(e);
-        System.out.println(" input file not found, using defaults:");
+        System.out.println(" Input file not found, using defaults:");
         String[] defaults = {"(pvq)", "((p>q)v-p)", "-(p^q)v-(p>q)", "((p^--q)>(-qv-p))", "---p", "((pvq)>(-p>--q))", "-(p>(q>p))", "(pv-q)", "-(pv-p)", "((p^--q)>(-qv-p))", "-pvq"};
         for (int j = 0; j < defaults.length; j++){
           System.out.println(tp.getResult(defaults[j]));
@@ -278,8 +258,6 @@ public class TheoremProver{
       }
     }
   }
-  
-  
   
 }
 
