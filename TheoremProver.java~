@@ -69,17 +69,16 @@ public class TheoremProver{
       b = p.splitBinaryFormulaB(x);
       TPnode aNode = new TPnode(a);
       TPnode bNode = new TPnode(b);
-      q.add(aNode);
-      q.add(bNode);
+      
       // add expanded children to correct locations of tree
       switch(k){
         case (0): break; 
-        case (1): addAlpha(n, aNode, bNode); break;
-        case (2): addAlpha(n, negate(aNode), negate(bNode)); break;
-        case (3): addAlpha(n, aNode, negate(bNode)); break;
-        case (4): addBeta(n, aNode, bNode); break;
-        case (5): addBeta(n, negate(aNode), negate(bNode)); break;
-        case (6): addBeta(n, negate(aNode), bNode); break;
+        case (1): addAlpha(n, aNode, bNode, q); break;
+        case (2): addAlpha(n, negate(aNode), negate(bNode), q); break;
+        case (3): addAlpha(n, aNode, negate(bNode), q); break;
+        case (4): addBeta(n, aNode, bNode, q); break;
+        case (5): addBeta(n, negate(aNode), negate(bNode), q); break;
+        case (6): addBeta(n, negate(aNode), bNode, q); break;
       }
     }
     return false;
@@ -160,41 +159,43 @@ public class TheoremProver{
   
   
   // Expands an alpha formula by placing children in correct leaves
-  public void addAlpha(TPnode n, TPnode aNode, TPnode bNode){
+  public void addAlpha(TPnode n, TPnode aNode, TPnode bNode, Queue<TPnode> q){
     TPnode curr = n;
     if (n == null){
       return;
     }
-    if(curr.left == null && curr.right == null){ //if leaf node
+    else if(curr.left == null && curr.right == null){ //if leaf node
+      q.add(aNode);
+      q.add(bNode);
       aNode.parent = curr;
       curr.left = aNode;
       bNode.parent = aNode;
       aNode.left = bNode;
-      // System.out.println("addalpha to " + curr.phrase + " with " + aNode.phrase + " and " + bNode.phrase);
+      //System.out.println("addalpha to " + curr.phrase + " with " + aNode.phrase + " and " + bNode.phrase);
     }else{
-      addAlpha(curr.left, aNode, bNode);
-      addAlpha(curr.right, aNode, bNode); 
+      addAlpha(curr.left, new TPnode(aNode.phrase), new TPnode(bNode.phrase), q);
+      addAlpha(curr.right, new TPnode(aNode.phrase), new TPnode(bNode.phrase), q); 
     }
     return;
   }
   
   // Expands an beta formula by placing children in correct leaves
-  public void addBeta(TPnode n, TPnode aNode, TPnode bNode){
-    TPnode curr = n; 
+  public void addBeta(TPnode n, TPnode aNode, TPnode bNode, Queue<TPnode> q){
     if(n == null){
       return;
-    }
-    if(curr.left == null && curr.right == null){ //if leaf node
-      aNode.parent = curr;
-      curr.left = aNode;
-      bNode.parent = curr;
-      curr.right = bNode;
-      // System.out.println("addbeta to " + curr.phrase + " with " + aNode.phrase + " and " + bNode.phrase);
+    }else if(n.left == null && n.right == null){ //if leaf node
+      q.add(aNode);
+      q.add(bNode);
+      aNode.parent = n;
+      n.left = aNode;
+      bNode.parent = n;
+      n.right = bNode;
+      //System.out.println("addbeta to " + n.phrase + " with " + aNode.phrase + " and " + bNode.phrase); 
+      return;
     }else{
-      addBeta(curr.left, aNode, bNode);
-      addBeta(curr.right, aNode, bNode);
+      addBeta(n.left, new TPnode(aNode.phrase), new TPnode(bNode.phrase), q);
+      addBeta(n.right, new TPnode(aNode.phrase), new TPnode(bNode.phrase), q);  
     }
-    return;
   }
   
   
@@ -232,7 +233,7 @@ public class TheoremProver{
     if(args.length > 0){ 
       for(int i = 0; i < args.length; i++){
         String s = args[i];
-        System.out.println(tp.prove(s));
+        System.out.println(tp.getResult(s));
       }
     }else{ 
       try{ // else try using input.txt file

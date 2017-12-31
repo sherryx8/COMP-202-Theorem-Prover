@@ -244,7 +244,7 @@ public class TheoremProver{
           String g = inputScanner.nextLine();
           String result = tp.getResult(g);
           printWriter.println(result);
-          System.out.println(result);
+          //System.out.println(result);
         }
         printWriter.close();
         inputScanner.close();
